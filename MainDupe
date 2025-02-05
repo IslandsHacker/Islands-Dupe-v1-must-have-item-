@@ -1,0 +1,161 @@
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 600, 0, 320)
+frame.Position = UDim2.new(0.5, -300, 0.5, -160)
+frame.BackgroundColor3 = Color3.new(.1, .1, .1)
+frame.Parent = screenGui
+frame.BackgroundTransparency = (.08)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 35)
+title.Position = UDim2.new(0, 0, 0, -20)
+title.Text = "Islands Dupe V1 (must have the item)"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.BackgroundColor3 = Color3.new(0, 0, 0)
+title.Parent = frame
+
+
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+title.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+title.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+        dragInput = nil
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(.5, 0, 0, 35)
+title.Position = UDim2.new(0, 150, 0, 220)
+title.Text = "Made By infinite bacon hub"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.BackgroundColor3 = Color3.new(0, 0, 0)
+title.Parent = frame
+
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 32, 0, 32)
+CloseButton.Position = UDim2.new(.98, -21, -.058, 0)
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.BackgroundColor3 = Color3.new(.2, .2, .2)
+CloseButton.Parent = frame
+
+CloseButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+
+-- Key System Variables
+local validKeys = {"islands", "another_valid_key", "yet_another_key"}
+local blacklistedKeys = {"banned", "another_banned_key"}
+local whitelistedKeys = {}
+
+local textBox = Instance.new("TextBox")
+textBox.Parent = frame
+textBox.Size = UDim2.new(1, -10, 0, 40)
+textBox.Position = UDim2.new(0, 5, 0, 60)
+textBox.PlaceholderText = "Enter Key"
+textBox.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+textBox.TextColor3 = Color3.fromRGB(20, 20, 20)
+textBox.Name = "KeyTextBox"
+
+local resultLabel = Instance.new("TextLabel")
+resultLabel.Parent = frame
+resultLabel.Size = UDim2.new(1, -10, 0, 20)
+resultLabel.Position = UDim2.new(0, 5, 0, 130)
+resultLabel.BackgroundTransparency = 1
+resultLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+resultLabel.Font = Enum.Font.SourceSansBold
+resultLabel.TextSize = 17
+resultLabel.Name = "ResultLabel"
+
+local function checkKey()
+    local enteredKey = textBox.Text
+    local lowerKey = string.lower(enteredKey)
+
+    if #whitelistedKeys > 0 then
+        local isWhitelisted = false
+        for _, key in ipairs(whitelistedKeys) do
+            if lowerKey == string.lower(key) then
+                isWhitelisted = true
+                break
+            end
+        end
+        if not isWhitelisted then
+            resultLabel.Text = "This key is not on the whitelist."
+            resultLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+            textBox.Text = ""
+            return
+        end
+    end
+
+    for _, key in ipairs(blacklistedKeys) do
+        if lowerKey == string.lower(key) then
+            resultLabel.Text = "This user is blacklisted."
+            resultLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+            textBox.Text = ""
+            return
+        end
+    end
+
+    for _, key in ipairs(validKeys) do
+        if lowerKey == string.lower(key) then
+            resultLabel.Text = "Correct Key"
+            resultLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/allfreescripts5/Freescripts/refs/heads/main/island-coin-total.lua"))() 
+            -- Key is correct, put your code here to execute when a valid key is entered.
+            textBox.Text = ""
+			screenGui:Destroy()
+            return
+        end
+    end
+
+    resultLabel.Text = "Incorrect Key!"
+    resultLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    textBox.Text = ""
+end
+
+
+textBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        checkKey()
+    end
+end)
+
