@@ -1,0 +1,187 @@
+-- Made BY Islands Dupe Central 
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 350, 0, 320)
+frame.Position = UDim2.new(0.5, -450, 0.5, -380)  -- Adjusted position
+frame.BackgroundColor3 = Color3.new(.1, .1, .1)
+frame.Parent = screenGui
+frame.BackgroundTransparency = (.08)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 35)
+title.Position = UDim2.new(0, 0, 0, -20)
+title.Text = "Islands Dupe V1" -- More descriptive title
+title.TextColor3 = Color3.new(1, 1, 1)
+title.BackgroundColor3 = Color3.new(0, 0, 0)
+title.Parent = frame
+
+
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+title.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+title.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+        dragInput = nil
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 20)
+title.Position = UDim2.new(0, 0, 0, 25)
+title.Text = "Made BY Islands Dupe Central " -- More descriptive title
+title.TextColor3 = Color3.new(1, 1, 1)
+title.BackgroundColor3 = Color3.new(0, 0, 0)
+title.Parent = frame
+
+local SearchTextBox = Instance.new("TextBox")
+SearchTextBox.Size = UDim2.new(.8, 0, 0.11, 0)
+SearchTextBox.Position = UDim2.new(.1, 0, .2, 0)
+SearchTextBox.PlaceholderText = "Search Items"
+SearchTextBox.TextColor3 = Color3.new(0, 0, 0)
+SearchTextBox.BackgroundTransparency = .7
+SearchTextBox.BackgroundColor3 = Color3.new(1, 1, 1)
+SearchTextBox.TextWrapped = true
+SearchTextBox.Parent = frame
+
+local ItemListFrame = Instance.new("Frame") -- Frame to hold item buttons
+ItemListFrame.Size = UDim2.new(.8, 0, 0.2, 0)  -- Adjust size as needed
+ItemListFrame.Position = UDim2.new(.1, 0, .35, 0)
+ItemListFrame.BackgroundTransparency = 1
+ItemListFrame.Parent = frame
+
+local AmountTextBox = Instance.new("TextBox")
+AmountTextBox.Size = UDim2.new(.8, 0, 0.11, 0)
+AmountTextBox.Position = UDim2.new(.1, 0, .5, 0)  -- Below item list
+AmountTextBox.PlaceholderText = "Enter Amount"
+AmountTextBox.TextColor3 = Color3.new(0, 0, 0)
+AmountTextBox.BackgroundTransparency = .7
+AmountTextBox.BackgroundColor3 = Color3.new(1, 1, 1)
+AmountTextBox.TextWrapped = true
+AmountTextBox.Parent = frame
+
+local SetAmountButton = Instance.new("TextButton")
+SetAmountButton.Size = UDim2.new(.3, 0, 0.1, 0)
+SetAmountButton.Position = UDim2.new(.35, 0, .70, 0)  -- Below AmountTextBox
+SetAmountButton.Text = "Set Amount"
+SetAmountButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+SetAmountButton.Parent = frame
+
+local ErrorLabel = Instance.new("TextLabel")
+ErrorLabel.Size = UDim2.new(.8, 0, 0.1, 0)
+ErrorLabel.Position = UDim2.new(.1, 0, .9, 0)  -- Below the button
+ErrorLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+ErrorLabel.BackgroundTransparency = 1
+ErrorLabel.Visible = false
+ErrorLabel.Parent = frame
+
+local SelectedItem = nil -- Store the currently selected item
+
+local function updateItemList(searchText)
+    for _, button in ipairs(ItemListFrame:GetChildren()) do
+        button:Destroy() -- Clear existing buttons
+    end
+
+    local Backpack = game.Players.LocalPlayer.Backpack
+    for _, item in ipairs(Backpack:GetChildren()) do
+        if item:IsA("Tool") and string.find(string.lower(item.Name), string.lower(searchText or "")) then -- Case-insensitive search
+            local itemButton = Instance.new("TextButton")
+            itemButton.Size = UDim2.new(1, 0, 0, 30) -- Adjust button size as needed
+            itemButton.Text = item.Name
+            itemButton.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+            itemButton.Parent = ItemListFrame
+
+            itemButton.MouseButton1Click:Connect(function()
+                SelectedItem = item -- Select the item
+                for _, btn in ipairs(ItemListFrame:GetChildren()) do  -- Visually indicate selection
+                    if btn == itemButton then
+                        btn.BackgroundColor3 = Color3.fromRGB(100,200,100) --Green
+                    else
+                        btn.BackgroundColor3 = Color3.fromRGB(150,150,150)
+                    end
+                end
+            end)
+        end
+    end
+end
+
+SearchTextBox.Changed:Connect(function()
+    updateItemList(SearchTextBox.Text)
+end)
+
+updateItemList("") -- Initial item list display
+
+SetAmountButton.MouseButton1Click:Connect(function()
+    local amountText = AmountTextBox.Text
+    local amount = tonumber(amountText)
+
+    if amount and SelectedItem and SelectedItem:IsA("Tool") and SelectedItem:FindFirstChild("Amount") then -- More checks
+        SelectedItem.Amount.Value = amount
+        print(SelectedItem.Name .. "'s Amount set to " .. amount)
+        AmountTextBox.Text = ""
+        ErrorLabel.Visible = false
+    else
+        local errorMessage = ""
+        if not amount then
+            errorMessage = "Invalid amount. Enter a number."
+        elseif not SelectedItem then
+            errorMessage = "No item selected."
+        elseif not SelectedItem:IsA("Tool") then
+            errorMessage = "Selected item is not a tool."
+        elseif not SelectedItem:FindFirstChild("Amount") then
+            errorMessage = "Selected item does not have 'Amount'."
+        end
+        print(errorMessage)
+        ErrorLabel.Text = errorMessage
+        ErrorLabel.Visible = true
+        AmountTextBox.Text = ""
+    end
+end)
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 32, 0, 32)
+CloseButton.Position = UDim2.new(.98, -21, -.058, 0)
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.BackgroundColor3 = Color3.new(.2, .2, .2)
+CloseButton.Parent = frame
+
+CloseButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
